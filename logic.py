@@ -5,6 +5,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
+def dplace(move):
+    if move == 'up':
+        DIRECTION = np.array([0, -20, 0, 0])
+    elif move == 'down':
+        DIRECTION = np.array([0, 20, 0, 0])
+    elif move == 'left':
+        DIRECTION = np.array([-20, 0, 0, 0])
+    elif move == 'right':
+        DIRECTION = np.array([20, 0, 0, 0])
+    return DIRECTION
+
+
 def Food_generate(list1):
     while True:
         list2 = np.array([random.randrange(0, 481, step=20), random.randrange(0, 481, step=20), 20, 20])
@@ -33,17 +46,18 @@ def survival(snake, direction):
             pass
     point=0
     if direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
-        return
+        point += 1
     elif direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
-        return 'up'
+        point += 1
     elif direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
-        return 'right'
+        point += 1
     elif direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
-        return 'left'
+        point += 1
+    return point
 
 
 
-def next_move(snake, food, direction):
+def next_move(snake, food, direction, score):
     ans = []
     ao = np.array([[0, 20], [0, -20], [20, 0], [-20, 0]])
     bin = np.array([True])
@@ -70,14 +84,21 @@ def next_move(snake, food, direction):
     # survival
 
     if not ans:
+        down, up, right, left = [0, 'down'], [0, 'up'], [0, 'right'], [0, 'left']
         if direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
-            return 'down'
-        elif direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
-            return 'up'
-        elif direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
-            return 'right'
-        elif direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
-            return 'left'
+            down=[survival(np.append(snake[1:], snake[-1] + np.array([0, 20, 0, 0])).reshape((score + 1), 4), np.array([0, 20, 0, 0])), 'down']
+        if direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
+            up=[survival(np.append(snake[1:], snake[-1] + np.array([0, -20, 0, 0])).reshape((score + 1), 4), np.array([0, -20, 0, 0])), 'up']
+        if direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
+            right=[survival(np.append(snake[1:], snake[-1] + np.array([20, 0, 0, 0])).reshape((score + 1), 4), np.array([20, 0, 0, 0])), 'right']
+        if direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
+            left=[survival(np.append(snake[1:], snake[-1] + np.array([-20, 0, 0, 0])).reshape((score + 1), 4), np.array([-20, 0, 0, 0])), 'left']
+        ans=[down, up, right, left]
+        ans.sort()
+        if ans[-1][0] == ans[-2][0]:
+            return random.choice([ans[-1][1], ans[-2][1]])
+        else:
+            return str(ans[-1][1])
     else:
         return ans
 
@@ -88,37 +109,30 @@ def snake():
     pygame.display.set_caption('Snake')
     WHITE, RED, GREEN = [255, 255, 255], [255, 0, 0], [0, 255, 0]
     OPEN = True
-    DIRECTION = np.array([20, 0, 0, 0])
+    move = np.array([20, 0, 0, 0])
     SNAKE = np.array([[220, 240, 20, 20], [240, 240, 20, 20], [260, 240, 20, 20], [280, 240, 20, 20]])
     FOOD = Food_generate(SNAKE)
     SCORE = 3
 
     while OPEN:
-        move = next_move(SNAKE, FOOD, DIRECTION)
+        move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE-1)))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 OPEN = False
                 pass
-        if move == 'up' and DIRECTION[1] != 20:
-            DIRECTION = np.array([0, -20, 0, 0])
-        elif move == 'down' and DIRECTION[1] != -20:
-            DIRECTION = np.array([0, 20, 0, 0])
-        elif move == 'left' and DIRECTION[0] != 20:
-            DIRECTION = np.array([-20, 0, 0, 0])
-        elif move == 'right' and DIRECTION[0] != -20:
-            DIRECTION = np.array([20, 0, 0, 0])
         # snake and foo3
         if all(FOOD == SNAKE[-1]):
-            SNAKE = np.append(SNAKE[1:], SNAKE[-1] + DIRECTION).reshape((SCORE + 1), 4)
+            SNAKE = np.append(SNAKE[1:], SNAKE[-1] + move).reshape((SCORE + 1), 4)
+            move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE-1)))
             SCORE += 1
-            SNAKE = np.append(SNAKE[:], SNAKE[-1] + DIRECTION).reshape((SCORE + 1), 4)
+            SNAKE = np.append(SNAKE[:], SNAKE[-1] + move).reshape((SCORE + 1), 4)
             if SNAKE.shape[0] == 625:
                 print('You won')
                 return SCORE
             FOOD = Food_generate(SNAKE)
             pass
         else:
-            SNAKE = np.append(SNAKE[1:], SNAKE[-1] + DIRECTION).reshape((SCORE + 1), 4)
+            SNAKE = np.append(SNAKE[1:], SNAKE[-1] + move).reshape((SCORE + 1), 4)
         # border
         if not (-20 < SNAKE[-1][0] < 500 and -20 < SNAKE[-1][1] < 500):
             OPEN = False
@@ -133,9 +147,10 @@ def snake():
         # snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        pygame.time.Clock().tick()
+        pygame.time.Clock().tick(20)
         continue
     snake()
+    return [SCORE]
 
 
 if __name__ == '__main__':
