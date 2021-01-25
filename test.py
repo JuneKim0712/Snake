@@ -1,21 +1,8 @@
-import numpy as np
-import random
-
-
-def Food_generate(list1):
-    while True:
-        list2 = np.array([random.randrange(0, 481, step=20), random.randrange(0, 481, step=20), 20, 20])
-        a = list2 == list1
-        for i in a:
-            if all(i):
-                print(list1, list2)
-                continue
-        return list2
-    return
-
-
-list1 = np.array([[60, 80, 20, 20], [40, 40, 20, 20]])
-
-for i in range(1, 1000):
-    a = Food_generate(list1)
-# print(list2[:2])
+elif snake[-1][0] == food[0] and direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
+        ans = 'left'
+    elif snake[-1][0] == food[0] and direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
+        ans = 'right'
+    elif snake[-1][1] == food[1] and direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
+        ans = 'up'
+    elif snake[-1][1] == food[1] and direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
+        ans = 'down'

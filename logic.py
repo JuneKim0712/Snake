@@ -1,12 +1,12 @@
 import pygame
-import threading
+import time
 import random
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def dplace(move):
+    print(move)
     if move == 'up':
         DIRECTION = np.array([0, -20, 0, 0])
     elif move == 'down':
@@ -29,7 +29,9 @@ def Food_generate(list1):
     return
 
 
-def survival(snake, direction):
+def survival(snake, direction, depth, score):
+    if depth == 0:
+        return 0
     ans = []
     ao = np.array([[0, 20], [0, -20], [20, 0], [-20, 0]])
     bin = np.array([True])
@@ -44,20 +46,26 @@ def survival(snake, direction):
         if bin2:
             bin = np.append(bin, True)
             pass
-    point=0
+    point = 0
     if direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
-        point += 1
-    elif direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
-        point += 1
-    elif direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
-        point += 1
-    elif direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
-        point += 1
-    return point
+        point += 1 + survival(np.append(snake[1:], snake[-1] + np.array([0, 20, 0, 0])).reshape((score + 1), 4),
+                              np.array([0, 20, 0, 0]), depth - 1, score)
+    if direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
+        point += 1 + survival(np.append(snake[1:], snake[-1] + np.array([0, -20, 0, 0])).reshape((score + 1), 4),
+                              np.array([0, -20, 0, 0]), depth - 1, score)
+    if direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
+        point += 1 + survival(np.append(snake[1:], snake[-1] + np.array([20, 0, 0, 0])).reshape((score + 1), 4),
+                              np.array([20, 0, 0, 0]), depth - 1, score)
+    if direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
+        point += 1 + survival(np.append(snake[1:], snake[-1] + np.array([-20, 0, 0, 0])).reshape((score + 1), 4),
+                              np.array([-20, 0, 0, 0]), depth - 1, score)
+    if point == 0:
+        return -1000
+    else:
+        return point
 
 
-
-def next_move(snake, food, direction, score):
+def next_move(snake, food, direction, score, depth=4):
     ans = []
     ao = np.array([[0, 20], [0, -20], [20, 0], [-20, 0]])
     bin = np.array([True])
@@ -72,35 +80,67 @@ def next_move(snake, food, direction, score):
         if bin2:
             bin = np.append(bin, True)
             pass
+    # to food
 
-    if snake[-1][1] < food[1] and direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
-        ans = 'down'
-    elif snake[-1][1] > food[1] and direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
-        ans = 'up'
-    elif snake[-1][0] < food[0] and direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
-        ans = 'right'
-    elif snake[-1][0] > food[0] and direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
-        ans = 'left'
     # survival
 
-    if not ans:
-        down, up, right, left = [0, 'down'], [0, 'up'], [0, 'right'], [0, 'left']
-        if direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
-            down=[survival(np.append(snake[1:], snake[-1] + np.array([0, 20, 0, 0])).reshape((score + 1), 4), np.array([0, 20, 0, 0])), 'down']
-        if direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
-            up=[survival(np.append(snake[1:], snake[-1] + np.array([0, -20, 0, 0])).reshape((score + 1), 4), np.array([0, -20, 0, 0])), 'up']
-        if direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
-            right=[survival(np.append(snake[1:], snake[-1] + np.array([20, 0, 0, 0])).reshape((score + 1), 4), np.array([20, 0, 0, 0])), 'right']
-        if direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
-            left=[survival(np.append(snake[1:], snake[-1] + np.array([-20, 0, 0, 0])).reshape((score + 1), 4), np.array([-20, 0, 0, 0])), 'left']
-        ans=[down, up, right, left]
-        ans.sort()
-        if ans[-1][0] == ans[-2][0]:
-            return random.choice([ans[-1][1], ans[-2][1]])
+    down, up, right, left = [-100000000, 'down'], [-100000000, 'up'], [-100000000, 'right'], [-100000000, 'left']
+    an = [down, up, right, left]
+    if direction[1] != -20 and snake[-1][1] + 20 < 500 and bin[1]:
+        down = [survival(np.append(snake[1:], snake[-1] + np.array([0, 20, 0, 0])).reshape((score + 1), 4),
+                         np.array([0, 20, 0, 0]), depth, score), 'down']
+    if direction[1] != 20 and snake[-1][1] - 20 > -20 and bin[2]:
+        up = [survival(np.append(snake[1:], snake[-1] + np.array([0, -20, 0, 0])).reshape((score + 1), 4),
+                       np.array([0, -20, 0, 0]), depth, score), 'up']
+    if direction[0] != -20 and snake[-1][0] + 20 < 500 and bin[3]:
+        right = [survival(np.append(snake[1:], snake[-1] + np.array([20, 0, 0, 0])).reshape((score + 1), 4),
+                          np.array([20, 0, 0, 0]), depth, score), 'right']
+    if direction[0] != 20 and snake[-1][0] - 20 > -20 and bin[4]:
+        left = [survival(np.append(snake[1:], snake[-1] + np.array([-20, 0, 0, 0])).reshape((score + 1), 4),
+                         np.array([-20, 0, 0, 0]), depth, score), 'left']
+    an = [down, up, right, left]
+    ans = ''
+    if snake[-1][1] < food[1] and an[0][0] != -100000000 and (
+            ((an[0][0] >= an[3][0] and snake[-1][0] > food[0]) or (an[0][0] >= an[2][0] and snake[-1][0] < food[0])
+            or (snake[-1][0] == food[0]))):
+        ans = 'down'
+    if snake[-1][1] > food[1] and an[1][0] != -100000000 and (
+            ((an[1][0] >= an[3][0] and snake[-1][0] > food[0]) or (an[1][0] >= an[2][0] and snake[-1][0] < food[0])
+            or (snake[-1][0] == food[0]))):
+        ans = 'up'
+    if snake[-1][0] < food[0] and an[2][0] != -100000000 and (
+            ((an[2][0] > an[0][0] and snake[-1][1] < food[1]) or (an[2][0] > an[1][0] and snake[-1][1] > food[1])) or (snake[-1][1] == food[1])):
+        ans = 'right'
+    if snake[-1][0] > food[0] and an[3][0] != -100000000 and (
+            ((an[3][0] > an[0][0] and snake[-1][1] < food[1]) or (an[3][0] > an[1][0] and snake[-1][1] > food[1])) or (snake[-1][1] == food[1])):
+        ans = 'left'
+    if ans == '':
+        if snake[-1][0] == food[0]:
+            if an[0][0] != -100000000 and an[0][0] >= an[1][0]:
+                return an[0][1]
+            elif an[1][0] != -100000000:
+                return an[1][1]
+            else:
+                if an[2][0] != -100000000 and an[2][0] >= an[3][0]:
+                    return an[2][1]
+                elif an[3][0] != -100000000:
+                    return an[3][1]
+        elif snake[-1][1] == food[1]:
+            if an[2][0] != -100000000 and an[3][0] >= an[2][0]:
+                return an[2][1]
+            elif an[3][0] != -100000000:
+                return an[3][1]
+            else:
+                if an[0][0] != -100000000 and an[0][0] >= an[1][0]:
+                    return an[0][1]
+                elif an[1][0] != -100000000:
+                    return an[1][1]
         else:
-            return str(ans[-1][1])
-    else:
-        return ans
+            an.sort()
+            print(an, food[:-2])
+            print(snake[-1][:-2])
+        return an[-1][1]
+    return str(ans)
 
 
 def snake():
@@ -115,7 +155,7 @@ def snake():
     SCORE = 3
 
     while OPEN:
-        move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE-1)))
+        move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE - 1)))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 OPEN = False
@@ -123,7 +163,7 @@ def snake():
         # snake and foo3
         if all(FOOD == SNAKE[-1]):
             SNAKE = np.append(SNAKE[1:], SNAKE[-1] + move).reshape((SCORE + 1), 4)
-            move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE-1)))
+            move = dplace(str(next_move(SNAKE[1:], FOOD, move, SCORE - 1)))
             SCORE += 1
             SNAKE = np.append(SNAKE[:], SNAKE[-1] + move).reshape((SCORE + 1), 4)
             if SNAKE.shape[0] == 625:
@@ -147,11 +187,15 @@ def snake():
         # snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        pygame.time.Clock().tick(20)
+        #pygame.time.Clock().tick(10)
         continue
-    snake()
-    return [SCORE]
+    print(SCORE)
+    time.sleep(15)
+    return SCORE
 
 
 if __name__ == '__main__':
-    snake()
+    a=0
+    for i in range(10):
+        a += snake()
+    print(a)
