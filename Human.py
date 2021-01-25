@@ -1,8 +1,6 @@
 import pygame
-# import time
 import random
 import numpy as np
-import threading
 
 def Food_generate(list1):
     while True:
@@ -72,7 +70,7 @@ def snake():
         #snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        pygame.time.Clock().tick(5)
+        pygame.time.Clock().tick(6)
         continue
         pygame.quit()
         return SCORE

@@ -1,12 +1,10 @@
 import pygame
-import time
 import random
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def dplace(move):
-    print(move)
     if move == 'up':
         DIRECTION = np.array([0, -20, 0, 0])
     elif move == 'down':
@@ -60,7 +58,7 @@ def survival(snake, direction, depth, score):
         point += 1 + survival(np.append(snake[1:], snake[-1] + np.array([-20, 0, 0, 0])).reshape((score + 1), 4),
                               np.array([-20, 0, 0, 0]), depth - 1, score)
     if point == 0:
-        return -1000
+        return -5000000
     else:
         return point
 
@@ -137,8 +135,6 @@ def next_move(snake, food, direction, score, depth=4):
                     return an[1][1]
         else:
             an.sort()
-            print(an, food[:-2])
-            print(snake[-1][:-2])
         return an[-1][1]
     return str(ans)
 
@@ -187,15 +183,11 @@ def snake():
         # snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        #pygame.time.Clock().tick(10)
+        pygame.time.Clock().tick(60)
         continue
     print(SCORE)
-    time.sleep(15)
     return SCORE
 
 
 if __name__ == '__main__':
-    a=0
-    for i in range(10):
-        a += snake()
-    print(a)
+    snake()
