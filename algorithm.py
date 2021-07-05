@@ -63,7 +63,7 @@ def survival(snake, direction, depth, score):
         return point
 
 
-def next_move(snake, food, direction, score, depth=4):
+def next_move(snake, food, direction, score, depth=5):
     ans = []
     ao = np.array([[0, 20], [0, -20], [20, 0], [-20, 0]])
     bin = np.array([True])
@@ -183,7 +183,7 @@ def snake():
         # snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        pygame.time.Clock().tick(60)
+        pygame.time.Clock().tick()
         continue
     print(SCORE)
     return SCORE

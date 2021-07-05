@@ -23,7 +23,7 @@ def snake():
     WHITE, RED, GREEN = [255, 255, 255], [255, 0, 0], [0, 255, 0]
     OPEN = True
     DIRECTION = np.array([20, 0, 0, 0])
-    SNAKE = np.array([[240, 240, 20, 20]])
+    SNAKE = np.array([[260, 260, 20, 20]])
     FOOD = Food_generate(SNAKE)
     SCORE = 0
 
@@ -70,7 +70,7 @@ def snake():
         #snake
         for i in SNAKE: pygame.draw.rect(DISPLAY, GREEN, i)
         pygame.display.update()
-        pygame.time.Clock().tick(6)
+        pygame.time.Clock().tick(10)
         continue
         pygame.quit()
         return SCORE
